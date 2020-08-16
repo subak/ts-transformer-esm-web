@@ -1,7 +1,7 @@
 import * as ts from 'typescript'
 import * as path from 'path'
 
-const replaceName = (name: string) => {
+const replaceName = (name: string, prefix: string) => {
   if (name.startsWith('.')) {
     if (name.endsWith('/')) {
       return `${name}index.js`;
@@ -9,15 +9,15 @@ const replaceName = (name: string) => {
       return `${name}.js`;
     }
   } else {
-    return `/pkit-ts/esm/${name}/index.js`;
+    return `${prefix}${name}/index.js`;
   }
 }
 
-const transformer = (_: ts.Program) => (transformationContext: ts.TransformationContext) => (sourceFile: ts.SourceFile) => {
+const transformer = (_: ts.Program, {prefix = ""}: {prefix: string}) => (transformationContext: ts.TransformationContext) => (sourceFile: ts.SourceFile) => {
   function visitNode(node: ts.Node): ts.VisitResult<ts.Node> {
     if (shouldMutateModuleSpecifier(node)) {
 
-      const newModuleSpecifier = ts.createLiteral(replaceName(node.moduleSpecifier.text));
+      const newModuleSpecifier = ts.createLiteral(replaceName(node.moduleSpecifier.text, prefix));
       // const newModuleSpecifier = ts.createLiteral(`${node.moduleSpecifier.text}.js`);
 
       if (ts.isImportDeclaration(node)) {
