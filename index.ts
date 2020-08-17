@@ -1,23 +1,44 @@
 import * as ts from 'typescript'
 import * as path from 'path'
+import minimatch from 'minimatch'
 
-const replaceName = (name: string, prefix: string) => {
+type Options = {
+  index: {
+    [prefix: string]: string[]
+  };
+  replace: {
+    [key: string]: string;
+  };
+}
+
+const replaceName = (name: string, {index={}, replace={}}: Options) => {
+  let item;
   if (name.startsWith('.')) {
     if (name.endsWith('/')) {
       return `${name}index.js`;
     } else {
       return `${name}.js`;
     }
+  } else if (item = Object.entries(replace).find(([key]) =>
+      key === name)) {
+      return item[1];
+  } else if (
+    item = Object.entries(index)
+      .find(([prefix, ptns]) =>
+        ptns.some((ptn) => minimatch(name, ptn))
+      )
+  ) {
+    return `${item[0]}${name}/index.js`;
   } else {
-    return `${prefix}${name}/index.js`;
+    return name;
   }
 }
 
-const transformer = (_: ts.Program, {prefix = ""}: {prefix: string}) => (transformationContext: ts.TransformationContext) => (sourceFile: ts.SourceFile) => {
+const transformer = (_: ts.Program, opts: Options) => (transformationContext: ts.TransformationContext) => (sourceFile: ts.SourceFile) => {
   function visitNode(node: ts.Node): ts.VisitResult<ts.Node> {
     if (shouldMutateModuleSpecifier(node)) {
 
-      const newModuleSpecifier = ts.createLiteral(replaceName(node.moduleSpecifier.text, prefix));
+      const newModuleSpecifier = ts.createLiteral(replaceName(node.moduleSpecifier.text, opts));
       // const newModuleSpecifier = ts.createLiteral(`${node.moduleSpecifier.text}.js`);
 
       if (ts.isImportDeclaration(node)) {
