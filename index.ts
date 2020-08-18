@@ -24,7 +24,7 @@ const replaceName = (name: string, {index={}, replace={}}: Options) => {
       return item[1];
   } else if (
     item = Object.entries(index)
-      .find(([prefix, ptns]) =>
+      .find(([,ptns]) =>
         ptns.some((ptn) => minimatch(name, ptn))
       )
   ) {
