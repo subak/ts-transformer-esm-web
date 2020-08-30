@@ -9,6 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "ttypescript": "^1.5.5"
+    "ttypescript": "1.5.5"
   }
 }
