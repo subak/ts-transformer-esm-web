@@ -15,6 +15,7 @@ type Options = {
 
 const replaceName = (name: string, {resolve=[], replace={}}: Options) => {
   let item;
+
   if (name.startsWith('.')) {
     if (name.endsWith('/')) {
       return `${name}index.js`;
@@ -28,23 +29,12 @@ const replaceName = (name: string, {resolve=[], replace={}}: Options) => {
     return item[1];
   } else if (
     item = resolve.find(({modules}) =>
-    modules.some((module) => minimatch(module, name)))
+    modules.some((pattern) => minimatch(name, pattern)))
   ) {
     return `${item.prefix}${name}${item.suffix}`;
   } else {
     return name;
   }
-
-  // else if (
-  //   item = Object.entries(index)
-  //     .find(([,ptns]) =>
-  //       ptns.some((ptn) => minimatch(name, ptn))
-  //     )
-  // ) {
-  //   return `${item[0]}${name}/index.js`;
-  // } else {
-  //   return name;
-  // }
 }
 
 const transformer = (_: ts.Program, opts: Options) => (transformationContext: ts.TransformationContext) => (sourceFile: ts.SourceFile) => {
