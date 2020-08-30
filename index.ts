@@ -3,15 +3,17 @@ import * as path from 'path'
 import minimatch from 'minimatch'
 
 type Options = {
-  index: {
-    [prefix: string]: string[]
-  };
+  resolve: {
+    prefix: string;
+    suffix: string;
+    modules: string[]
+  }[],
   replace: {
     [key: string]: string;
   };
 }
 
-const replaceName = (name: string, {index={}, replace={}}: Options) => {
+const replaceName = (name: string, {resolve=[], replace={}}: Options) => {
   let item;
   if (name.startsWith('.')) {
     if (name.endsWith('/')) {
@@ -19,19 +21,30 @@ const replaceName = (name: string, {index={}, replace={}}: Options) => {
     } else {
       return `${name}.js`;
     }
-  } else if (item = Object.entries(replace).find(([key]) =>
-      key === name)) {
-      return item[1];
   } else if (
-    item = Object.entries(index)
-      .find(([,ptns]) =>
-        ptns.some((ptn) => minimatch(name, ptn))
-      )
+    item = Object.entries(replace)
+      .find(([key]) => key === name)
   ) {
-    return `${item[0]}${name}/index.js`;
+    return item[1];
+  } else if (
+    item = resolve.find(({modules}) =>
+    modules.some((module) => minimatch(module, name)))
+  ) {
+    return `${item.prefix}${name}${item.suffix}`;
   } else {
     return name;
   }
+
+  // else if (
+  //   item = Object.entries(index)
+  //     .find(([,ptns]) =>
+  //       ptns.some((ptn) => minimatch(name, ptn))
+  //     )
+  // ) {
+  //   return `${item[0]}${name}/index.js`;
+  // } else {
+  //   return name;
+  // }
 }
 
 const transformer = (_: ts.Program, opts: Options) => (transformationContext: ts.TransformationContext) => (sourceFile: ts.SourceFile) => {
@@ -39,7 +52,6 @@ const transformer = (_: ts.Program, opts: Options) => (transformationContext: ts
     if (shouldMutateModuleSpecifier(node)) {
 
       const newModuleSpecifier = ts.createLiteral(replaceName(node.moduleSpecifier.text, opts));
-      // const newModuleSpecifier = ts.createLiteral(`${node.moduleSpecifier.text}.js`);
 
       if (ts.isImportDeclaration(node)) {
         return ts.updateImportDeclaration(node, node.decorators, node.modifiers, node.importClause, newModuleSpecifier)
