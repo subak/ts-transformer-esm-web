@@ -16,17 +16,17 @@ type Options = {
 const replaceName = (name: string, {resolve=[], replace={}}: Options) => {
   let item;
 
-  if (name.startsWith('.')) {
+  if (
+    item = Object.entries(replace)
+      .find(([key]) => key === name)
+  ) {
+    return item[1];
+  } else if (name.startsWith('.')) {
     if (name.endsWith('/')) {
       return `${name}index.js`;
     } else {
       return `${name}.js`;
     }
-  } else if (
-    item = Object.entries(replace)
-      .find(([key]) => key === name)
-  ) {
-    return item[1];
   } else if (
     item = resolve.find(({modules}) =>
     modules.some((pattern) => minimatch(name, pattern)))
