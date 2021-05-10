@@ -1,12 +1,18 @@
+import typescript from '@rollup/plugin-typescript'
 import nodeResolve from '@rollup/plugin-node-resolve'
 
 export default {
   external: ['typescript', 'path', 'minimatch'],
-  input: "ts-transformer-esm-web",
+  input: "index.ts",
   output: {
-    dir: __dirname,
+    dir: `./`,
     entryFileNames: `[name].cjs`,
-    format: 'cjs'
+    format: 'cjs',
+    exports: "auto"
   },
-  plugins: [nodeResolve()]
+  plugins: [typescript({
+    allowSyntheticDefaultImports: true,
+    include: ["**/*"],
+    exclude: []
+  }), nodeResolve()]
 }
