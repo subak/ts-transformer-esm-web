@@ -39,7 +39,7 @@ const replaceName = (name: string, {resolve=[], replace={}, endsWithReplace={}}:
     item = resolve.find(({modules}) =>
       modules.some((pattern) => minimatch(name, pattern)))
   ) {
-    if (/\.(js|cjs|mjs)$/.test(name)) {
+    if ( name.indexOf('/') > 0 && /\.(js|cjs|mjs)$/.test(name)) {
       return `${item.prefix}${name}`;
     } else {
       return `${item.prefix}${name}${item.suffix}`;
